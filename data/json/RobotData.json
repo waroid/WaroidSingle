@@ -1,0 +1,103 @@
+﻿{
+	"Title": "Waroid Robot Data",
+	"Date": "2017-08-09T19:51:56",
+	"Version": 1,
+	"Data": {
+		"CRAB": {
+			"type": 1,
+			"display": "CRAB",
+			"maxhealth": 100,
+			"movepower": {
+				"FORWARD": 200,
+				"BACKWARD": 200,
+				"LEFT_FORWARD": 200,
+				"RIGHT_FORWARD": 200,
+				"LEFT_TURN": 140,
+				"RIGHT_TURN": 140
+			},
+			"firetype": "GATLING",
+            "attackrange": 100,
+            "attackspeed": 0.1,
+			"damage": 2,
+			"collisionscale": [19.0, 14.0, 23.0],
+			"camerafovhorizontal": 62.2,
+			"camerafovvertical": 48.8,
+			"cameraposition": [0, 9.6, 7.4],
+			"spec": "- Hard Track Based Vehicle\n- 2 High Torque Motors\n- Speed : Fast\n- Armor : Depleted uranium mesh-reinforced composite Heavy armor",
+			"armament": "- Weapon: Dual gathling gun"
+		},
+		"TAURUS": {
+			"type": 2,
+			"display": "TAURUS",
+			"maxhealth": 100,
+			"movepower": {
+				"FORWARD": 200,
+				"BACKWARD": 200,
+				"LEFT_FORWARD": 200,
+				"RIGHT_FORWARD": 200,
+				"LEFT_TURN": 140,
+				"RIGHT_TURN": 140
+			},
+			"firetype": "GATLING",
+            "attackrange": 100,
+            "attackspeed": 0.1,
+			"damage": 2,
+			"collisionscale": [19.0, 14.0, 23.0],
+			"camerafovhorizontal": 62.2,
+			"camerafovvertical": 48.8,
+			"cameraposition": [0, 9.6, 7.4],
+			"spec": "- 6 Wheels and Coil-Suspension Based Vehicle\n- 6 Middle Torque Motors\n- Speed : Fast\n- Armor : Depleted uranium mesh-reinforced composite Heavy armor",
+			"armament": "- Weapon: Dual gathling gun"
+		},
+		"TURTLE": {
+			"type": 3,
+			"display": "TURTLE",
+			"maxhealth": 100,
+			"movepower": {
+				"FORWARD": 100,
+				"BACKWARD": 100,
+				"LEFT": 100,
+				"RIGHT": 100,
+				"LEFT_FORWARD": 100,
+				"RIGHT_FORWARD": 100,
+				"LEFT_TURN": 70,
+				"RIGHT_TURN": 70
+			},
+			"firetype": "CANNON",
+            "attackrange": 150,
+            "attackspeed": 1.3,
+			"damage": 15,
+			"collisionscale": [20.5, 13.0, 20.5],
+			"camerafovhorizontal": 62.2,
+			"camerafovvertical": 48.8,
+			"cameraposition": [0, 9.0, 7.0],
+			"spec": "- 4 Omni Wheels Base Vehicle\n- 4 Middle Torque Motors\n- Speed : Normal\n- Armor : Depleted uranium mesh-reinforced composite Light armor",
+			"armament": "- Weapon: Dual cannon gun"
+		},
+		"TOAD": {
+			"type": 4,
+			"display": "TOAD",
+			"maxhealth": 100,
+			"movepower": {
+				"FORWARD": 100,
+				"BACKWARD": 100,
+				"LEFT": 100,
+				"RIGHT": 100,
+				"LEFT_FORWARD": 100,
+				"RIGHT_FORWARD": 100,
+				"LEFT_TURN": 70,
+				"RIGHT_TURN": 70
+			},
+			"firetype": "CANNON",
+            "attackrange": 150,
+            "attackspeed": 1.3,
+			"damage": 15,
+			"collisionscale": [19.0, 14.0, 23.0],
+			"camerafovhorizontal": 62.2,
+			"camerafovvertical": 48.8,
+			"cameraposition": [0, 9.6, 7.4],
+			"spec": "- 4 Mecanum Wheels Based Vehicle\n- 4 Middle Torque Motors\n- Speed : Normal\n- Armor : Depleted uranium mesh-reinforced composite Light armor",
+			"armament": "- Weapon: Dual cannon gun"
+		}
+	}
+}
