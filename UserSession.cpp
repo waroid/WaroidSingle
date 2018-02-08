@@ -94,9 +94,11 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_MOVE)
 	GRC_CHECK_RETURN(rpacket->speed >= WAROIDSPEED::NONE && rpacket->speed < WAROIDSPEED::TOTAL);
 
 	//send serial
-	Manager::GetControlBoardOpener().getFirstOpenedSession()->sendMove(rpacket->dir, rpacket->speed);
+	WAROIDDIRECTION::ETYPE dir = static_cast<WAROIDDIRECTION::ETYPE>(rpacket->dir);
+	WAROIDSPEED::ETYPE speed = static_cast<WAROIDSPEED::ETYPE>(rpacket->speed);
+	Manager::GetControlBoardOpener().getFirstOpenedSession()->sendMove(dir, speed);
 
-	GRC_DEV("[%s]move. dir=%d speed=%d", getObjName(), rpacket->dir, rpacket->speed);
+	GRC_DEV("[%s]move. dir=%d speed=%d", getObjName(), dir, speed);
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_FIRE)
