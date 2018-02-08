@@ -10,7 +10,7 @@
 #define WAROIDDIRECTIONELSEIFRETURN(e,n)	else if (strcasecmp(#e, n) == 0) return WAROIDDIRECTION::e;
 namespace WAROIDDIRECTION
 {
-	ETYPE getType(GRCCSTR name)
+	ETYPE GetType(GRCCSTR name)
 	{
 		if (name == nullptr)
 			return ETYPE::NONE;
@@ -30,17 +30,18 @@ namespace WAROIDDIRECTION
 	}
 }
 
-#define WAROIDWEAPONFIREELSEIFRETURN(e,n)	else if (strcasecmp(#e, n) == 0) return WAROIDWEAPONFIRE::e;
-namespace WAROIDWEAPONFIRE
+#define WAROIDWEAPONELSEIFRETURN(e,n)	else if (strcasecmp(#e, n) == 0) return WAROIDWEAPON::e;
+namespace WAROIDWEAPON
 {
-	ETYPE getType(GRCCSTR name)
+	ETYPE GetType(GRCCSTR name)
 	{
 		if (name == nullptr)
 			return ETYPE::UNKNOWN;
 
-		WAROIDWEAPONFIREELSEIFRETURN(UNKNOWN, name)
-		WAROIDWEAPONFIREELSEIFRETURN(GATLING, name)
-		WAROIDWEAPONFIREELSEIFRETURN(CANNON, name)
+		WAROIDWEAPONELSEIFRETURN(UNKNOWN, name)
+		WAROIDWEAPONELSEIFRETURN(GATLING, name)
+		WAROIDWEAPONELSEIFRETURN(CANNON, name)
+		WAROIDWEAPONELSEIFRETURN(LASER, name)
 
 		return ETYPE::UNKNOWN;
 	}

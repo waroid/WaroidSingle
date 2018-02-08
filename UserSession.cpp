@@ -7,26 +7,28 @@
 
 #include "UserSession.h"
 
-#include <stddef.h>
-#include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "common/GRCSoundWorker.h"
 #include "communication/GRCCommunicator.h"
 #include "communication/GRCSerialOpener.h"
-#include "core/GRCCore.h"
-#include "core/GRCString.h"
+#include "communication/GRCSockAddr.h"
+#include "core/GRCCoreUtil.h"
+#include "core/GRCObject.h"
 #include "ControlBoardSession.h"
 #include "Defines.h"
+#include "GlobalData.h"
 #include "Manager.h"
-#include "RobotInfo.h"
-#include "WeaponData.h"
+#include "UserSessionDefines.h"
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(HEARTBEAT_2)
 {
-	this->recvHeartbeat(rpacket->getServerTicket());
+	recvHeartbeat(rpacket->serverTick);
 
-	WAROIDUSERROBOT::HEARTBEAT_3 spacket(rpacket->getClientTicket());
-	sendPacket(spacket);
+	WAROIDUSERROBOT::HEARTBEAT_3 spacket;
+	spacket.clientTick = rpacket->clientTick;
+	sendPacket(&spacket);
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_LOGIN)
@@ -36,37 +38,36 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_LOGIN)
 		close(reason);
 	};
 
-#define MASTER_ID			999
-#define MASTER_VALIDATEKEY	12345678
+	GRC_CHECK_FUNC_RETURN(GlobalData::Login().update(true), eclose("already logined."));
 
-	if (rpacket->getId() == MASTER_ID)
-	{
-		GRC_CHECK_FUNC_RETURN(rpacket->getValidateKey() == MASTER_VALIDATEKEY, eclose("invalid validate key"));
-	}
-	else
-	{
-		GRC_CHECK_FUNC_RETURN(rpacket->getId() == Manager::getRobotInfo().getId(), eclose("invalid robot id"));
-		GRC_CHECK_FUNC_RETURN(rpacket->getValidateKey() == Manager::getRobotInfo().getValidateKey(), eclose("invalid validate key"));
-	}
+	GRCSoundWorker::playTts("get on %s", GlobalData::GetRobotName());
+	Manager::GetControlBoardOpener().getFirstOpenedSession()->blinkLed(0.2, 0.2, 5);
+	pthread_create(&m_sendInfoThread, nullptr, sendInfoWorker, this);
 
-	Manager::getRobotInfo().updateUserLogin(true);
-	GRCSoundWorker::playTts("get on %s", *Manager::getRobotInfo().getRobotData()->name);
-	Manager::getControlBoardOpener().getFirstOpenedSession()->blinkLed(0.2, 0.2, 5);
-
-	WAROIDUSERROBOT::U_R_LOGIN_ACK spacket(WAROIDUSERROBOT::PERROR::SUCCESS);
-	sendPacket(spacket);
+	WAROIDUSERROBOT::U_R_LOGIN_ACK spacket;
+	spacket.perror = WAROIDUSERROBOT::PERROR::SUCCESS;
+	spacket.type = GlobalData::GetRobotType();
+	sendPacket(&spacket);
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_CAMERA)
 {
-	GRC_CHECK_RETURN(Manager::getRobotInfo().isUserLogin());
+	auto eclose = [this](const char* reason)
+	{
+		close(reason);
+	};
+
+	GRC_CHECK_FUNC_RETURN(GlobalData::Login(), eclose("not login."));
 
 	system("killall nc");
 	system("killall raspivid");
-	if (rpacket->getOn() == 1)
+	if (rpacket->on == 1)
 	{
+		int fps = GlobalData::GetCameraFps(rpacket->quality);
+		int bitRate = GlobalData::GetCameraBitRate(rpacket->quality);
+
 		char command[256] = { 0 };
-		sprintf(command, "raspivid -o - -t 0 -w 1280 -h 720 -fps %d -b %d -vf -n | nc %s %d &", Manager::getRobotInfo().getCameraFps(), Manager::getRobotInfo().getCameraBitRate(), m_remoteSockAddr.getIp(), CAMERA_USER_PORT);
+		sprintf(command, "raspivid -o - -t 0 -w 1280 -h 720 -fps %d -b %d -vf -n | nc %s %d &", fps, bitRate, m_remoteSockAddr.getIp(), CAMERA_USER_PORT);
 #ifdef __RPI__
 		system(command);
 #endif
@@ -77,68 +78,58 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_CAMERA)
 		GRC_INFO("closed camera");
 	}
 
-	GRCSoundWorker::playTts("%s camera",
-			rpacket->getOn() == 1 ? "open" : "close");
+	GRCSoundWorker::playTts("%s camera", rpacket->on == 1 ? "open" : "close");
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_MOVE)
 {
-	GRC_CHECK_RETURN(Manager::getRobotInfo().isUserLogin());
+	auto eclose = [this](const char* reason)
+	{
+		close(reason);
+	};
 
-	GRC_CHECK_RETURN(rpacket->getDirection() >= WAROIDDIRECTION::NONE && rpacket->getDirection() < WAROIDDIRECTION::TOTAL);
-	GRC_CHECK_RETURN(rpacket->getSpeed() >= WAROIDSPEED::NONE && rpacket->getSpeed() < WAROIDSPEED::TOTAL);
+	GRC_CHECK_FUNC_RETURN(GlobalData::Login(), eclose("not login."));
+
+	GRC_CHECK_RETURN(rpacket->dir >= WAROIDDIRECTION::NONE && rpacket->dir < WAROIDDIRECTION::TOTAL);
+	GRC_CHECK_RETURN(rpacket->speed >= WAROIDSPEED::NONE && rpacket->speed < WAROIDSPEED::TOTAL);
 
 	//send serial
-	Manager::getControlBoardOpener().getFirstOpenedSession()->sendMove(rpacket->getDirection(), rpacket->getSpeed());
+	Manager::GetControlBoardOpener().getFirstOpenedSession()->sendMove(rpacket->dir, rpacket->speed);
 
-	GRC_DEV("[%s]move. dir=%d speed=%d", getObjName(), rpacket->getDirection(), rpacket->getSpeed());
+	GRC_DEV("[%s]move. dir=%d speed=%d", getObjName(), rpacket->dir, rpacket->speed);
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_FIRE)
 {
-	GRC_CHECK_RETURN(Manager::getRobotInfo().isUserLogin());
-
-	const WeaponData::DATA* weaponData = nullptr;
-	switch (rpacket->getWeaponIndex())
+	auto eclose = [this](const char* reason)
 	{
-		case 0:
-			weaponData = Manager::getRobotInfo().getFirstWeaponData();
-			break;
+		close(reason);
+	};
 
-		case 1:
-			weaponData = Manager::getRobotInfo().getSecondWeaponData();
-			break;
-	}
-	GRC_CHECK_RETURN(weaponData);
+	GRC_CHECK_FUNC_RETURN(GlobalData::Login(), eclose("not login."));
 
-	if (rpacket->getOn() == 1)
+	if (rpacket->on == 1)
 	{
-		if (rpacket->getWeaponIndex() == 0)
+		Manager::GetControlBoardOpener().getFirstOpenedSession()->sendFire(true);
+		if (GlobalData::IsRepeatWeapon() == false)
 		{
-			Manager::getControlBoardOpener().getFirstOpenedSession()->sendFire(true);
-			if (weaponData->isRepeat() == false)
-			{
-				GRCCoreUtil::sleep(0.1);
-				Manager::getControlBoardOpener().getFirstOpenedSession()->sendFire(false);
-			}
+			GRCCoreUtil::sleep(0.1);
+			Manager::GetControlBoardOpener().getFirstOpenedSession()->sendFire(false);
 		}
 
-		GRCSoundWorker::startPlay(weaponData->soundfilename);
+		GRCSoundWorker::startPlay(GlobalData::GetWeaponSoundFilename());
 	}
 	else
 	{
-		if (rpacket->getWeaponIndex() == 0)
-		{
-			Manager::getControlBoardOpener().getFirstOpenedSession()->sendFire(false);
-		}
+		Manager::GetControlBoardOpener().getFirstOpenedSession()->sendFire(false);
 
-		if (weaponData->isRepeat())
+		if (GlobalData::IsRepeatWeapon())
 		{
-			GRCSoundWorker::endPlay(weaponData->soundfilename);
+			GRCSoundWorker::endPlay(GlobalData::GetWeaponSoundFilename());
 		}
 	}
 
-	GRC_DEV("[%s]fire. weapon=%d,%s on=%d", getObjName(), rpacket->getWeaponIndex(), *weaponData->name, rpacket->getOn());
+	GRC_DEV("[%s]fire. on=%d", getObjName(), rpacket->on);
 }
 
 UserSession::UserSession(size_t maxPacketSize)
@@ -153,19 +144,27 @@ UserSession::~UserSession()
 	// TODO Auto-generated destructor stub
 }
 
+void UserSession::onOpen()
+{
+	GRCAcceptSession::onOpen();
+
+	//todo
+}
+
 void UserSession::onClose()
 {
 	system("killall nc");
+#ifdef __RPI__
 	system("killall raspivid");
+#endif
 
 	//stop all
-	auto* controlBoardSession = Manager::getControlBoardOpener().getFirstOpenedSession();
+	auto* controlBoardSession = Manager::GetControlBoardOpener().getFirstOpenedSession();
 	if (controlBoardSession) controlBoardSession->sendStopAll();
 
-	if (Manager::getRobotInfo().isUserLogin())
+	if (GlobalData::Login().update(false))
 	{
-		Manager::getRobotInfo().updateUserLogin(false);
-		GRCSoundWorker::playTts("alight from %s", *Manager::getRobotInfo().getRobotData()->name);
+		GRCSoundWorker::playTts("alight from %s", GlobalData::GetRobotName());
 	}
 
 	GRCAcceptSession::onClose();
@@ -173,30 +172,72 @@ void UserSession::onClose()
 
 int UserSession::onParsing(const char* data, int size)
 {
-	if (size < WAROIDUSERROBOT::PACKET::getSize()) return 0;
+	GRC_CHECK_RETMINUS(data);
 
-	return WAROIDUSERROBOT::PACKET::getSize();
+	if (size < WAROIDUSERROBOT::HEADER::GetHeaderSize()) return 0;
+
+	const WAROIDUSERROBOT::HEADER* header = reinterpret_cast<const WAROIDUSERROBOT::HEADER*>(data);
+	int packetSize = header->GetPacketSize();
+	if (size < packetSize) return 0;
+
+	GRC_CHECKV_RETMINUS(packetSize<=WAROID_USER_ROBOT_MAX_PACKET_SIZE, "over packet size. packetsize=%d", packetSize);
+
+	return packetSize;
 }
 
 void UserSession::onPacket(const char* packet, int size)
 {
-	const WAROIDUSERROBOT::PACKET* urp = (const WAROIDUSERROBOT::PACKET*)packet;
+	const WAROIDUSERROBOT::HEADER* urh = reinterpret_cast<const WAROIDUSERROBOT::HEADER*>(packet);
 
-	switch (urp->getCommand())
+	switch (urh->GetCommand())
 	{
-		WAROID_USER_SESSION_COMMAND_CASE_LOG(3, HEARTBEAT_2, urp)
-		WAROID_USER_SESSION_COMMAND_CASE(U_R_LOGIN, urp)
-		WAROID_USER_SESSION_COMMAND_CASE(U_R_CAMERA, urp)
-		WAROID_USER_SESSION_COMMAND_CASE_LOG(3, U_R_MOVE, urp)
-		WAROID_USER_SESSION_COMMAND_CASE_LOG(3, U_R_FIRE, urp)
+		WAROID_USER_SESSION_COMMAND_CASE_LOG(3, HEARTBEAT_2, urh)
+		WAROID_USER_SESSION_COMMAND_CASE(U_R_LOGIN, urh)
+		WAROID_USER_SESSION_COMMAND_CASE(U_R_CAMERA, urh)
+		WAROID_USER_SESSION_COMMAND_CASE_LOG(3, U_R_MOVE, urh)
+		WAROID_USER_SESSION_COMMAND_CASE_LOG(3, U_R_FIRE, urh)
 		default:
-			GRC_ERR("invalid packet. cmd=WAROIDUSERROBOT::%d", urp->getCommand());
+			GRC_ERR("invalid packet. cmd=WAROIDUSERROBOT::%d", urh->GetCommand());
 			break;
 	}
 }
 
-void UserSession::sendPacket(const WAROIDUSERROBOT::PACKET& packet)
+void UserSession::sendPacket(const WAROIDUSERROBOT::HEADER* header)
 {
-	send(&packet, WAROIDUSERROBOT::PACKET::getSize());
+	send(header, header->GetPacketSize());
 }
 
+void UserSession::onSendingInfo()
+{
+	WAROIDUSERROBOT::R_U_INFO spacket;
+	float yaw = spacket.yaw = 0.0f;
+	int battery = spacket.battery = 0;
+
+	while (GlobalData::Login())
+	{
+		yaw = GlobalData::GetYaw();
+		battery = GlobalData::GetBattery();
+
+		if (yaw != spacket.yaw || battery != spacket.battery)
+		{
+			spacket.yaw = yaw;
+			spacket.battery = battery;
+			sendPacket(&spacket);
+
+			GRC_INFO_COUNT(3, "[%s]sending info. yaw=%f battery=%d", getObjName(), yaw, battery);
+		}
+
+		GRCCoreUtil::sleep(0.1);
+	}
+}
+
+void* UserSession::sendInfoWorker(void* param)
+{
+	UserSession* session = (UserSession*)param;
+
+	GRC_INFO("[%s]start send info thread(0x%x)", session->getObjName(), pthread_self());
+	session->onSendingInfo();
+	GRC_INFO("[%s]stop send info thread(0x%x)", session->getObjName(), pthread_self());
+
+	return nullptr;
+}

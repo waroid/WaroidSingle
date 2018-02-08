@@ -12,8 +12,8 @@
 #include "core/GRCCoreUtil.h"
 #include "core/GRCObject.h"
 #include "ControlBoardSessionDefines.h"
+#include "GlobalData.h"
 #include "Manager.h"
-#include "RobotInfo.h"
 
 namespace CONTROL_BOARD_SESSION
 {
@@ -22,12 +22,7 @@ namespace CONTROL_BOARD_SESSION
 using namespace CONTROL_BOARD_SESSION;
 
 ControlBoardSession::ControlBoardSession(size_t maxPacketSize)
-		: 	GRCSerialSession(maxPacketSize),
-			m_heartbeatThread(GRC_INVALID_THREAD),
-			m_ledThread(GRC_INVALID_THREAD),
-			m_currentLed(false),
-			m_oldDirection(WAROIDDIRECTION::NONE),
-			m_oldSpeed(WAROIDSPEED::NONE)
+		: GRCSerialSession(maxPacketSize), m_heartbeatThread(GRC_INVALID_THREAD), m_ledThread(GRC_INVALID_THREAD), m_currentLed(false), m_oldDirection(WAROIDDIRECTION::NONE), m_oldSpeed(WAROIDSPEED::NONE)
 
 {
 	// TODO Auto-generated constructor stub
@@ -55,14 +50,14 @@ void ControlBoardSession::sendMove(WAROIDDIRECTION::ETYPE dir, WAROIDSPEED::ETYP
 		WAROIDCONTROLBOARD::PACKET packet;
 		packet.cmd = WAROIDCONTROLBOARD::COMMAND::RP_AR_MOVE;
 		packet.hi = (char)dir;
-		packet.low = (char)Manager::getRobotInfo().getMovePower(dir, speed);
+		packet.low = (char)GlobalData::GetMovePower(dir, speed);
 		sendPacket(packet);
 
 		m_oldDirection = dir;
 		m_oldSpeed = speed;
 	}
 
-	GRC_DEV("[%s]move dir=%d speed=%d power=%d", getObjName(), dir, speed, Manager::getRobotInfo().getMovePower(dir, speed));
+	GRC_DEV("[%s]move dir=%d speed=%d power=%d", getObjName(), dir, speed, GlobalData::GetMovePower(dir, speed));
 }
 
 void ControlBoardSession::sendFire(bool on)
@@ -154,7 +149,7 @@ void ControlBoardSession::onPacket(const char* packet, int size)
 				GRCCoreUtil::sleep(0.1);
 			}
 
-			if (Manager::getRobotInfo().isUserLogin())
+			if (GlobalData::Login())
 			{
 				blinkLed(0.25, 0.25, 2);
 			}
@@ -166,12 +161,12 @@ void ControlBoardSession::onPacket(const char* packet, int size)
 			GRC_INFO("[%s]received. cmd=WAROIDCONTROLBOARD::AR_RP_HEARTBEAT_ACK hi=%d low=%d", getObjName(), cbp->hi, cbp->low);
 			break;
 		case WAROIDCONTROLBOARD::COMMAND::AR_RP_YAW:
-			Manager::getRobotInfo().updateYaw(cbp->hi, cbp->low);
-			GRC_INFO_COUNT(3, "[%s]received. cmd=WAROIDCONTROLBOARD::AR_RP_YAW hi=%d low=%d v=%f", getObjName(), cbp->hi, cbp->low, Manager::getRobotInfo().getYaw())
+			GlobalData::UpdateYaw(cbp->hi, cbp->low);
+			GRC_INFO_COUNT(3, "[%s]received. cmd=WAROIDCONTROLBOARD::AR_RP_YAW hi=%d low=%d v=%f", getObjName(), cbp->hi, cbp->low, GlobalData::GetYaw())
 			break;
 		case WAROIDCONTROLBOARD::COMMAND::AR_RP_BATTERY:
-			Manager::getRobotInfo().updateBattery(cbp->hi, cbp->low);
-			GRC_INFO_COUNT(3, "[%s]received. cmd=WAROIDCONTROLBOARD::AR_RP_BATTERY hi=%d low=%d v=%d", getObjName(), cbp->hi, cbp->low, Manager::getRobotInfo().getBattery())
+			GlobalData::UpdateBattery(cbp->hi, cbp->low);
+			GRC_INFO_COUNT(3, "[%s]received. cmd=WAROIDCONTROLBOARD::AR_RP_BATTERY hi=%d low=%d v=%d", getObjName(), cbp->hi, cbp->low, GlobalData::GetBattery())
 			break;
 
 		case WAROIDCONTROLBOARD::COMMAND::RP_AR_HEARTBEAT:
@@ -223,7 +218,7 @@ void ControlBoardSession::onRequestHeartbeat()
 			m_green.update(false);
 
 			// deactive ...
-			Manager::getRobotInfo().updateBattery(0, 0);
+			GlobalData::UpdateBattery(0, 0);
 			GRCSoundWorker::playTts("control board is red");
 		}
 

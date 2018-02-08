@@ -11,8 +11,6 @@
 
 #include "core/GRCCore.h"
 
-//#include "json/json.h"
-
 RobotData::RobotData()
 {
 	// TODO Auto-generated constructor stub
@@ -23,16 +21,16 @@ RobotData::~RobotData()
 {
 	// TODO Auto-generated destructor stub
 	for (auto& it : m_datas)
-		{
-			delete it.second;
-		}
-		m_datas.clear();
+	{
+		delete it.second;
+	}
+	m_datas.clear();
 }
 
 bool RobotData::load()
 {
 	GRCString path(JSON_DATA_DIR);
-	path.append("WaroidRobotData.json");
+	path.append("RobotData.json");
 
 	return loadFile(path);
 }
@@ -71,36 +69,21 @@ bool RobotData::onLoad(const RAPIDJSON_NAMESPACE::Value& data)
 		}
 
 		{
-			auto siter = v.FindMember("weaponname");
-			if (siter != v.MemberEnd())
-				data->weaponname = siter->value.GetString();
-		}
-
-		{
-			auto siter = v.FindMember("attackedsoundfilename");
-			if (siter != v.MemberEnd())
-				data->attackedsoundfilename = siter->value.GetString();
-		}
-
-		{
-			auto siter = v.FindMember("deathsoundfilename");
-			if (siter != v.MemberEnd())
-				data->deathsoundfilename = siter->value.GetString();
-		}
-
-		{
-			auto siter = v.FindMember("revivesoundfilename");
-			if (siter != v.MemberEnd())
-				data->revivesoundfilename = siter->value.GetString();
-		}
-
-		{
 			auto siter = v.FindMember("movepower");
 			if (siter != v.MemberEnd())
 			{
 				GRC_CHECK_RETFALSE(setMovePowers(data, siter->value));
 			}
 
+		}
+
+		{
+			auto siter = v.FindMember("weapon");
+			if (siter != v.MemberEnd())
+			{
+				data->weapon = WAROIDWEAPON::GetType(siter->value.GetString());
+				data->weaponSoundFilename.format("%s.wav", siter->value.GetString());
+			}
 		}
 
 		GRC_CHECK_RETFALSE(data->isValid());
@@ -115,7 +98,7 @@ bool RobotData::setMovePowers(DATA* data, const RAPIDJSON_NAMESPACE::Value& valu
 
 	for (auto iter = value.MemberBegin(); iter != value.MemberEnd(); ++iter)
 	{
-		WAROIDDIRECTION::ETYPE dir = WAROIDDIRECTION::getType(iter->name.GetString());
+		WAROIDDIRECTION::ETYPE dir = WAROIDDIRECTION::GetType(iter->name.GetString());
 		GRC_CHECK_RETFALSE(dir != WAROIDDIRECTION::NONE);
 
 		data->movepowers[dir] = iter->value.GetInt();

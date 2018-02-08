@@ -22,27 +22,25 @@ void cleanup(int s);
 
 int main(int argc, char* argv[])
 {
-	if (argc < 5)
+	if (argc < 3)
 	{
-		GRC_WARN("usage: %s <robot id> <robot type name> <game sever ip>  <dev 0 or 1>", argv[0]);
+		GRC_WARN("usage: %s <robot type name> <dev 0 or 1>", argv[0]);
 		return -1;
 	}
 
-	GRCLogger::setDev(atoi(argv[4]) == 1);
+	GRCLogger::setDev(atoi(argv[2]) == 1);
 
-	GRC_INFO("[New Waroid] START");
+	GRC_INFO("[Waroid Single] START");
 
 	GRC_CHECK_FUNC_RETMINUS(initialize(), cleanup(0));
 
-	int robotId = atoi(argv[1]);
-	const char* robotTypeName = argv[2];
-	const char* gameServerIp = argv[3];
+	const char* robotTypeName = argv[1];
 
-	Manager::start(robotId, robotTypeName, gameServerIp);
+	Manager::start(robotTypeName);
 
 	cleanup(0);
 
-	GRC_INFO("[New Waroid] END");
+	GRC_INFO("[Waroid Single] END");
 
 	return 0;
 }

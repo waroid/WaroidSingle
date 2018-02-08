@@ -10,6 +10,10 @@
 
 #include "Defines.h"
 
+//////////
+//
+#define WAROID_USER_ROBOT_MAX_PACKET_SIZE	50
+
 namespace WAROIDUSERROBOT
 {
 	////////////////////
@@ -26,7 +30,7 @@ namespace WAROIDUSERROBOT
 			TOTAL
 		};
 	}
-	
+
 	namespace COMMAND
 	{
 		enum ETYPE
@@ -36,12 +40,14 @@ namespace WAROIDUSERROBOT
 			HEARTBEAT_1 = 1,
 			HEARTBEAT_2,
 			HEARTBEAT_3,
-			
+
 			U_R_LOGIN,
 			U_R_LOGIN_ACK,
 			U_R_CAMERA,
 			U_R_MOVE,
 			U_R_FIRE,
+
+			R_U_INFO,
 		};
 	}
 }
@@ -50,41 +56,81 @@ namespace WAROIDUSERROBOT
 namespace WAROIDUSERROBOT
 {
 	////////////////////
-	//	packet
-	class PACKET
+	//	packet header
+	class HEADER
 	{
 	public:
-		PACKET(COMMAND::ETYPE command, int data1, int data2) : m_command(static_cast<char>(command)), m_data1(data1), m_data2(data2) {}
-	
-	public:
-		COMMAND::ETYPE	getCommand() const { return static_cast<COMMAND::ETYPE>(m_command); }
-
-	protected:
-		char	m_command;
-		int		m_data1;
-		int		m_data2;
+		HEADER(COMMAND::ETYPE command, int packetSize)
+				: m_packetSize(static_cast<unsigned short>(packetSize)), m_command(static_cast<char>(command))
+		{
+		}
 
 	public:
-		static int	getSize() { return sizeof(PACKET); }
+		COMMAND::ETYPE GetCommand() const
+		{
+			return static_cast<COMMAND::ETYPE>(m_command);
+		}
+
+		int GetPacketSize() const
+		{
+			return m_packetSize;
+		}
+
+	private:
+		unsigned short m_packetSize;
+		char m_command;
+
+	public:
+		static int GetHeaderSize()
+		{
+			return sizeof(HEADER);
+		}
 	};
 
-#define WAROID_USER_ROBOT_PACKET_CLASS_0(cmd)							class cmd : public PACKET { public: cmd():PACKET(COMMAND::cmd, 0, 0) {}; }
-#define WAROID_USER_ROBOT_PACKET_CLASS_1(cmd,type,var)					class cmd : public PACKET { public: cmd(type var):PACKET(COMMAND::cmd, var, 0) {}; type get##var() const {return static_cast<type>(m_data1);};}
-#define WAROID_USER_ROBOT_PACKET_CLASS_1_E(cmd,ns,var)					class cmd : public PACKET { public: cmd(ns::ETYPE var):PACKET(COMMAND::cmd, var, 0) {}; ns::ETYPE get##var() const {return static_cast<ns::ETYPE>(m_data1);};}
-#define WAROID_USER_ROBOT_PACKET_CLASS_2(cmd,type1,var1,type2,var2)		class cmd : public PACKET { public: cmd(type1 var1, type2 var2):PACKET(COMMAND::cmd, var1, var2) {}; type1 get##var1() const {return static_cast<type1>(m_data1);};type2 get##var2() const {return static_cast<type2>(m_data2);};}
-#define WAROID_USER_ROBOT_PACKET_CLASS_2_TE(cmd,type1,var1,ns2,var2)	class cmd : public PACKET { public: cmd(type1 var1, ns2::ETYPE var2):PACKET(COMMAND::cmd, var1, var2) {}; type1 get##var1() const {return static_cast<type1>(m_data1);};ns2::ETYPE get##var2() const {return static_cast<ns2::ETYPE>(m_data2);};}
-#define WAROID_USER_ROBOT_PACKET_CLASS_2_ET(cmd,ns1,var1,type2,var2)	class cmd : public PACKET { public: cmd(ns1::ETYPE var1, type2 var2):PACKET(COMMAND::cmd, var1, var2) {}; ns1::ETYPE get##var1() const {return static_cast<ns1::ETYPE>(m_data1);};type2 get##var2() const {return static_cast<type2>(m_data2);};}
-#define WAROID_USER_ROBOT_PACKET_CLASS_2_EE(cmd,ns1,var1,ns2,var2)		class cmd : public PACKET { public: cmd(ns1::ETYPE var1, ns2::ETYPE var2):PACKET(COMMAND::cmd, var1, var2) {}; ns1::ETYPE get##var1() const {return static_cast<ns1::ETYPE>(m_data1);};ns2::ETYPE get##var2() const {return static_cast<ns2::ETYPE>(m_data2);};}
+#define WAROID_USER_ROBOT_PACKET_STRUCT_START(cmd)	struct cmd: public HEADER{cmd():HEADER(COMMAND::cmd, sizeof(*this)){}
+#define WAROID_USER_ROBOT_PACKET_STRUCT_END			}
 
-	WAROID_USER_ROBOT_PACKET_CLASS_1(HEARTBEAT_1, unsigned int, ServerTicket);
-	WAROID_USER_ROBOT_PACKET_CLASS_2(HEARTBEAT_2, unsigned int, ServerTicket, unsigned int, ClientTicket);
-	WAROID_USER_ROBOT_PACKET_CLASS_1(HEARTBEAT_3, unsigned int, ClientTicket);
-	WAROID_USER_ROBOT_PACKET_CLASS_2(U_R_LOGIN, int, Id, unsigned int, ValidateKey);
-	WAROID_USER_ROBOT_PACKET_CLASS_1_E(U_R_LOGIN_ACK, PERROR, Perror);
-	WAROID_USER_ROBOT_PACKET_CLASS_1(U_R_CAMERA, int, On);
-	WAROID_USER_ROBOT_PACKET_CLASS_2_EE(U_R_MOVE, WAROIDDIRECTION, Direction, WAROIDSPEED, Speed);
-	WAROID_USER_ROBOT_PACKET_CLASS_2(U_R_FIRE, int, WeaponIndex, int, On);
-	
+	////////////////////
+	//	packet
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (HEARTBEAT_1)
+		unsigned int serverTick = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (HEARTBEAT_2)
+		unsigned int serverTick = 0;
+		unsigned int clientTick = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (HEARTBEAT_3)
+		unsigned int clientTick = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_LOGIN)
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_LOGIN_ACK)
+		PERROR::ETYPE perror = PERROR::UNKNOWN;
+		int type = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_CAMERA)
+		unsigned char on = 0;
+		unsigned char quality = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_MOVE)
+		WAROIDDIRECTION::ETYPE dir = WAROIDDIRECTION::NONE;
+		WAROIDSPEED::ETYPE speed = WAROIDSPEED::NONE;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_FIRE)
+		unsigned char on = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
+
+	WAROID_USER_ROBOT_PACKET_STRUCT_START (R_U_INFO)
+		float yaw = 0.0f;
+		int battery = 0;
+	WAROID_USER_ROBOT_PACKET_STRUCT_END;
 }
 #pragma pack()
 

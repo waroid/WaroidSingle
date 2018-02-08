@@ -24,20 +24,17 @@
 #define CONTROL_BOARD_BAUD		9600
 
 #ifdef __RPI__
-#define SOUND_DATA_DIR	"/usr/local/share/waroid/"
-#define JSON_DATA_DIR	"/usr/local/share/waroid/"
+#define SOUND_DATA_DIR	"/usr/local/share/waroidsingle/"
+#define JSON_DATA_DIR	"/usr/local/share/waroidsingle/"
 #else
-#define SOUND_DATA_DIR	"/home/mirime/RaspberryPi/NewWaroid/data/sound/"
-#define JSON_DATA_DIR	"/home/mirime/RaspberryPi/NewWaroid/data/json/"
+#define SOUND_DATA_DIR	"/home/mirime/RaspberryPi/WaroidSingle/data/sound/"
+#define JSON_DATA_DIR	"/home/mirime/RaspberryPi/WaroidSingle/data/json/"
 #endif
 
 #define BOOT_SOUND_FILENAME	"Common_Booting_Sound.wav"
 
 #define MIN_MOVE_POWER	60
 #define MAX_MOVE_POWER	250
-
-#define OBSERVER_ROBOT_TYPE		0
-#define START_SECOND_WEAPON_ID	10001
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -74,7 +71,7 @@ namespace WAROIDDIRECTION
 		TOTAL
 	};
 
-	extern ETYPE getType(GRCCSTR name);
+	extern ETYPE GetType(GRCCSTR name);
 }
 
 namespace WAROIDSPEED
@@ -91,7 +88,7 @@ namespace WAROIDSPEED
 	};
 }
 
-namespace WAROIDWEAPONFIRE
+namespace WAROIDWEAPON
 {
 	enum ETYPE
 	{
@@ -99,9 +96,10 @@ namespace WAROIDWEAPONFIRE
 		//-----
 		GATLING,
 		CANNON,
+		LASER,
 	};
 
-	extern ETYPE getType(GRCCSTR name);
+	extern ETYPE GetType(GRCCSTR name);
 }
 
 #endif /* DEFINES_H_ */

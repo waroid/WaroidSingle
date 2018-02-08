@@ -1,6 +1,6 @@
 DEPEND_FILE = depend_file
 BINDIR = /usr/local/bin
-DATADIR = /usr/local/share/waroid
+DATADIR = /usr/local/share/waroidsingle
 
 CC = gcc
 CXX = g++
@@ -30,9 +30,9 @@ CPPSOURCES = main.cpp \
 	core/GRCObject.cpp \
 	core/GRCString.cpp \
 	Defines.cpp \
+	GlobalData.cpp \
 	ControlBoardSession.cpp \
 	RobotData.cpp \
-	RobotInfo.cpp \
 	UserSession.cpp \
 	Manager.cpp
 

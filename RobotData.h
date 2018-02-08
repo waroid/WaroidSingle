@@ -23,21 +23,19 @@ public:
 	struct DATA
 	{
 		GRCString name;
-		int type;
-		GRCString weaponname;
-		GRCString attackedsoundfilename;
-		GRCString deathsoundfilename;
-		GRCString revivesoundfilename;
+		int type = 0;
 		unsigned char movepowers[WAROIDDIRECTION::TOTAL];
+		WAROIDWEAPON::ETYPE weapon = WAROIDWEAPON::UNKNOWN;
+		GRCString weaponSoundFilename;
 
-		DATA() : type(0)
+		DATA()
 		{
 			bzero(movepowers, sizeof(movepowers));
 		}
 
 		bool isValid() const
 		{
-			return name.isEmpty() == false && type >= 0 && weaponname.isEmpty() == false;
+			return name.isEmpty() == false && type >= 0 && weapon != WAROIDWEAPON::UNKNOWN;
 		}
 	};
 	using MapData = std::map<int, DATA*>;

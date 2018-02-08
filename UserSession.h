@@ -8,8 +8,21 @@
 #ifndef USERSESSION_H_
 #define USERSESSION_H_
 
+#include <pthread.h>
+#include <stddef.h>
+
 #include "communication/GRCAcceptSession.h"
-#include "UserSessionDefines.h"
+#include "core/GRCCore.h"
+
+namespace WAROIDUSERROBOT
+{
+	class HEADER;
+	struct HEARTBEAT_2;
+	struct U_R_CAMERA;
+	struct U_R_FIRE;
+	struct U_R_LOGIN;
+	struct U_R_MOVE;
+} /* namespace WAROIDUSERROBOT */
 
 class UserSession: public GRCAcceptSession
 {
@@ -30,12 +43,20 @@ public:
 	virtual ~UserSession();
 
 protected:
+	virtual void onOpen() override;
 	virtual void onClose() override;
 	virtual int onParsing(const char* data, int size) override;
 	virtual void onPacket(const char* packet, int size) override;
 
 private:
-	void sendPacket(const WAROIDUSERROBOT::PACKET& packet);
+	void sendPacket(const WAROIDUSERROBOT::HEADER* header);
+	void onSendingInfo();
+
+private:
+	pthread_t m_sendInfoThread = GRC_INVALID_THREAD;
+
+private:
+	static void* sendInfoWorker(void* param);
 };
 
 #endif /* USERSESSION_H_ */
