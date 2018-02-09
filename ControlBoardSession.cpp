@@ -174,7 +174,9 @@ void ControlBoardSession::onPacket(const char* packet, int size)
 		case WAROIDCONTROLBOARD::COMMAND::RP_AR_MOVE:
 		case WAROIDCONTROLBOARD::COMMAND::RP_AR_FIRE:
 		case WAROIDCONTROLBOARD::COMMAND::RP_AR_LED:
+#ifdef __RPI__
 			GRC_WARN("echo packet. cmd=WAROIDCONTROLBOARD::0x%x hi=%d low=%d", cbp->cmd, cbp->hi, cbp->low);
+#endif
 			break;
 
 		default:
@@ -207,7 +209,7 @@ void ControlBoardSession::onRequestHeartbeat()
 	static char low = 0;
 
 	WAROIDCONTROLBOARD::PACKET packet;
-	packet.cmd = (char)WAROIDCONTROLBOARD::COMMAND::RP_AR_HEARTBEAT;
+	packet.cmd = WAROIDCONTROLBOARD::COMMAND::RP_AR_HEARTBEAT;
 
 	while (true)
 	{
@@ -219,7 +221,9 @@ void ControlBoardSession::onRequestHeartbeat()
 
 			// deactive ...
 			GlobalData::UpdateBattery(0, 0);
+#ifdef __RPI__
 			GRCSoundWorker::playTts("control board is red");
+#endif
 		}
 
 		sendPacket(packet);
@@ -234,7 +238,7 @@ void ControlBoardSession::onProcessLed()
 	double value = 0;
 
 	WAROIDCONTROLBOARD::PACKET packet;
-	packet.cmd = (char)WAROIDCONTROLBOARD::COMMAND::RP_AR_LED;
+	packet.cmd = WAROIDCONTROLBOARD::COMMAND::RP_AR_LED;
 
 	while (true)
 	{

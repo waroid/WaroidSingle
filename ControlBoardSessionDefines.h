@@ -15,6 +15,25 @@
 #define WAROID_IS_PREFIX(d)		((unsigned char)d == WAROID_CONTROLBOARD_PREFIX)
 #define WAROID_IS_POSTFIX(d)	((unsigned char)d == WAROID_CONTROLBOARD_POSTFIX)
 
+namespace WAROIDCONTROLBOARD
+{
+	enum class COMMAND
+		: char
+		{
+			NONE = 0,
+			//-----
+		RP_AR_HEARTBEAT = 0x11,
+		RP_AR_STOP_ALL,
+		RP_AR_MOVE,
+		RP_AR_FIRE,
+		RP_AR_LED,
+		//-----
+		AR_RP_HEARTBEAT_ACK = 0x21,
+		AR_RP_YAW,
+		AR_RP_BATTERY,
+	};
+}
+
 #pragma pack(1)
 namespace WAROIDCONTROLBOARD
 {
@@ -23,43 +42,17 @@ namespace WAROIDCONTROLBOARD
 	struct PACKET
 	{
 		unsigned char prefix;
-		char cmd;
+		COMMAND cmd;
 		char hi;
 		char low;
 		unsigned char postfix;
 
 		PACKET()
-				: 	prefix(WAROID_CONTROLBOARD_PREFIX),
-					cmd(0),
-					hi(0),
-					low(0),
-					postfix(WAROID_CONTROLBOARD_POSTFIX)
+				: prefix(WAROID_CONTROLBOARD_PREFIX), cmd(COMMAND::NONE), hi(0), low(0), postfix(WAROID_CONTROLBOARD_POSTFIX)
 		{
 		}
 	};
 }
 #pragma pack()
-
-namespace WAROIDCONTROLBOARD
-{
-	namespace COMMAND
-	{
-		enum ETYPE
-		{
-			NONE = 0,
-			//-----
-			RP_AR_HEARTBEAT = 0x11,
-			RP_AR_STOP_ALL,
-			RP_AR_MOVE,
-			RP_AR_FIRE,
-			RP_AR_LED,
-			//-----
-			AR_RP_HEARTBEAT_ACK = 0x21,
-			AR_RP_YAW,
-			AR_RP_BATTERY,
-		//-----
-		};
-	}
-}
 
 #endif /* CONTROLBOARDSESSIONDEFINES_H_ */
