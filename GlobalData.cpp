@@ -36,16 +36,16 @@ int GlobalData::GetRobotType()
 	return s_owner->type;
 }
 
-unsigned char GlobalData::GetMovePower(WAROIDDIRECTION::ETYPE dir, WAROIDSPEED::ETYPE speed)
+unsigned char GlobalData::GetMovePower(WAROIDDIRECTION direction, WAROIDSPEED speed)
 {
 	switch (speed)
 	{
 		case WAROIDSPEED::SLOW:
-			return GRCMath::Clamp<unsigned char>(s_owner->movepowers[dir] / 2, MIN_MOVE_POWER, MAX_MOVE_POWER);
+			return GRCMath::Clamp<unsigned char>(s_owner->movepowers[(int)direction] / 2, MIN_MOVE_POWER, MAX_MOVE_POWER);
 		case WAROIDSPEED::DEFAULT:
-			return GRCMath::Clamp<unsigned char>(s_owner->movepowers[dir], MIN_MOVE_POWER, MAX_MOVE_POWER);
+			return GRCMath::Clamp<unsigned char>(s_owner->movepowers[(int)direction], MIN_MOVE_POWER, MAX_MOVE_POWER);
 		case WAROIDSPEED::FAST:
-			return GRCMath::Clamp<unsigned char>(s_owner->movepowers[dir] * 2, MIN_MOVE_POWER, MAX_MOVE_POWER);
+			return GRCMath::Clamp<unsigned char>(s_owner->movepowers[(int)direction] * 2, MIN_MOVE_POWER, MAX_MOVE_POWER);
 		default:
 			return 0;
 	}
@@ -61,14 +61,14 @@ const char* GlobalData::GetWeaponSoundFilename()
 	return s_owner->weaponSoundFilename;
 }
 
-int GlobalData::GetCameraFps(unsigned char quality)
+int GlobalData::GetCameraFps(int quality)
 {
 	if (quality >= maxQuality) return fpses[0];
 
 	return fpses[quality];
 }
 
-int GlobalData::GetCameraBitRate(unsigned char quality)
+int GlobalData::GetCameraBitRate(int quality)
 {
 	if (quality >= maxQuality) return bitRates[0];
 

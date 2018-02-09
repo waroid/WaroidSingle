@@ -43,21 +43,21 @@ void ControlBoardSession::sendStopAll()
 	m_currentLed = false;
 }
 
-void ControlBoardSession::sendMove(WAROIDDIRECTION::ETYPE dir, WAROIDSPEED::ETYPE speed)
+void ControlBoardSession::sendMove(WAROIDDIRECTION direction, WAROIDSPEED speed)
 {
-	if (m_oldDirection != dir || m_oldSpeed != speed)
+	if (m_oldDirection != direction || m_oldSpeed != speed)
 	{
 		WAROIDCONTROLBOARD::PACKET packet;
 		packet.cmd = WAROIDCONTROLBOARD::COMMAND::RP_AR_MOVE;
-		packet.hi = (char)dir;
-		packet.low = (char)GlobalData::GetMovePower(dir, speed);
+		packet.hi = (char)direction;
+		packet.low = (char)GlobalData::GetMovePower(direction, speed);
 		sendPacket(packet);
 
-		m_oldDirection = dir;
+		m_oldDirection = direction;
 		m_oldSpeed = speed;
 	}
 
-	GRC_DEV("[%s]move dir=%d speed=%d power=%d", getObjName(), dir, speed, GlobalData::GetMovePower(dir, speed));
+	GRC_DEV("[%s]move dir=%d speed=%d power=%d", getObjName(), direction, speed, GlobalData::GetMovePower(direction, speed));
 }
 
 void ControlBoardSession::sendFire(bool on)

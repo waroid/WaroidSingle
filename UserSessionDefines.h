@@ -18,38 +18,31 @@ namespace WAROIDUSERROBOT
 {
 	////////////////////
 	//	error
-	namespace PERROR
-	{
-		enum ETYPE
+	enum class PERROR
+		: unsigned char
 		{
 			UNKNOWN = 0,
 			//-----
-			SUCCESS,
-			EXISTS_OWNER,
-			//-----
-			TOTAL
-		};
-	}
+		SUCCESS,
+	};
 
-	namespace COMMAND
-	{
-		enum ETYPE
+	enum class COMMAND
+		: unsigned char
 		{
-			INVALID = -1,
+			NONE = 0,
 			//-----
-			HEARTBEAT_1 = 1,
-			HEARTBEAT_2,
-			HEARTBEAT_3,
+		HEARTBEAT_1 = 1,
+		HEARTBEAT_2,
+		HEARTBEAT_3,
 
-			U_R_LOGIN,
-			U_R_LOGIN_ACK,
-			U_R_CAMERA,
-			U_R_MOVE,
-			U_R_FIRE,
+		U_R_LOGIN,
+		U_R_LOGIN_ACK,
+		U_R_CAMERA,
+		U_R_MOVE,
+		U_R_FIRE,
 
-			R_U_INFO,
-		};
-	}
+		R_U_INFO,
+	};
 }
 
 #pragma pack(1)
@@ -60,15 +53,15 @@ namespace WAROIDUSERROBOT
 	class HEADER
 	{
 	public:
-		HEADER(COMMAND::ETYPE command, int packetSize)
-				: m_packetSize(static_cast<unsigned short>(packetSize)), m_command(static_cast<char>(command))
+		HEADER(COMMAND command, int packetSize)
+				: m_packetSize(static_cast<unsigned short>(packetSize)), m_command(command)
 		{
 		}
 
 	public:
-		COMMAND::ETYPE GetCommand() const
+		COMMAND GetCommand() const
 		{
-			return static_cast<COMMAND::ETYPE>(m_command);
+			return m_command;
 		}
 
 		int GetPacketSize() const
@@ -78,7 +71,7 @@ namespace WAROIDUSERROBOT
 
 	private:
 		unsigned short m_packetSize;
-		char m_command;
+		COMMAND m_command;
 
 	public:
 		static int GetHeaderSize()
@@ -109,22 +102,22 @@ namespace WAROIDUSERROBOT
 	WAROID_USER_ROBOT_PACKET_STRUCT_END;
 
 	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_LOGIN_ACK)
-		int perror = static_cast<int>(PERROR::UNKNOWN);
+		PERROR perror = PERROR::UNKNOWN;
 		int type = 0;
 	WAROID_USER_ROBOT_PACKET_STRUCT_END;
 
 	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_CAMERA)
-		unsigned char on = 0;
-		unsigned char quality = 0;
+		WAROIDONOFF onoff = WAROIDONOFF::OFF;
+		int quality = 0;
 	WAROID_USER_ROBOT_PACKET_STRUCT_END;
 
 	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_MOVE)
-		int dir = static_cast<int>(WAROIDDIRECTION::NONE);
-		int speed = static_cast<int>(WAROIDSPEED::NONE);
+		WAROIDDIRECTION direction = WAROIDDIRECTION::NONE;
+		WAROIDSPEED speed = WAROIDSPEED::NONE;
 	WAROID_USER_ROBOT_PACKET_STRUCT_END;
 
 	WAROID_USER_ROBOT_PACKET_STRUCT_START (U_R_FIRE)
-		unsigned char on = 0;
+		WAROIDONOFF onoff = WAROIDONOFF::OFF;
 	WAROID_USER_ROBOT_PACKET_STRUCT_END;
 
 	WAROID_USER_ROBOT_PACKET_STRUCT_START (R_U_INFO)

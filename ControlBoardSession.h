@@ -34,7 +34,7 @@ public:
 
 public:
 	void sendStopAll();
-	void sendMove(WAROIDDIRECTION::ETYPE dir, WAROIDSPEED::ETYPE speed);
+	void sendMove(WAROIDDIRECTION direction, WAROIDSPEED speed);
 	void sendFire(bool on);
 	void sendLed(bool on);
 
@@ -64,8 +64,8 @@ private:
 
 	bool m_currentLed;
 
-	WAROIDDIRECTION::ETYPE m_oldDirection;
-	WAROIDSPEED::ETYPE m_oldSpeed;
+	WAROIDDIRECTION m_oldDirection;
+	WAROIDSPEED m_oldSpeed;
 
 private:
 	static void* heartbeatWorker(void* param);

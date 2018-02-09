@@ -81,7 +81,8 @@ bool RobotData::onLoad(const RAPIDJSON_NAMESPACE::Value& data)
 			auto siter = v.FindMember("weapon");
 			if (siter != v.MemberEnd())
 			{
-				data->weapon = WAROIDWEAPON::GetType(siter->value.GetString());
+				data->weapon = GetWaroidWeapon(siter->value.GetString());
+				GRC_CHECK_RETFALSE(data->weapon != WAROIDWEAPON::UNKNOWN);
 				data->weaponSoundFilename.format("%s.wav", siter->value.GetString());
 			}
 		}
@@ -98,10 +99,10 @@ bool RobotData::setMovePowers(DATA* data, const RAPIDJSON_NAMESPACE::Value& valu
 
 	for (auto iter = value.MemberBegin(); iter != value.MemberEnd(); ++iter)
 	{
-		WAROIDDIRECTION::ETYPE dir = WAROIDDIRECTION::GetType(iter->name.GetString());
-		GRC_CHECK_RETFALSE(dir != WAROIDDIRECTION::NONE);
+		WAROIDDIRECTION direction = GetWaroidDirection(iter->name.GetString());
+		GRC_CHECK_RETFALSE(direction != WAROIDDIRECTION::NONE);
 
-		data->movepowers[dir] = iter->value.GetInt();
+		data->movepowers[(int)direction] = iter->value.GetInt();
 	}
 
 	return true;

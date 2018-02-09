@@ -24,8 +24,8 @@ public:
 	{
 		GRCString name;
 		int type = 0;
-		unsigned char movepowers[WAROIDDIRECTION::TOTAL];
-		WAROIDWEAPON::ETYPE weapon = WAROIDWEAPON::UNKNOWN;
+		unsigned char movepowers[(int)WAROIDDIRECTION::TOTAL];
+		WAROIDWEAPON weapon = WAROIDWEAPON::UNKNOWN;
 		GRCString weaponSoundFilename;
 
 		DATA()

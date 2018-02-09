@@ -61,7 +61,7 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_CAMERA)
 
 	system("killall nc");
 	system("killall raspivid");
-	if (rpacket->on == 1)
+	if (rpacket->onoff == WAROIDONOFF::ON)
 	{
 		int fps = GlobalData::GetCameraFps(rpacket->quality);
 		int bitRate = GlobalData::GetCameraBitRate(rpacket->quality);
@@ -78,7 +78,7 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_CAMERA)
 		GRC_INFO("closed camera");
 	}
 
-	GRCSoundWorker::playTts("%s camera", rpacket->on == 1 ? "open" : "close");
+	GRCSoundWorker::playTts("%s camera", rpacket->onoff == WAROIDONOFF::ON ? "open" : "close");
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_MOVE)
@@ -90,15 +90,13 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_MOVE)
 
 	GRC_CHECK_FUNC_RETURN(GlobalData::Login(), eclose("not login."));
 
-	GRC_CHECK_RETURN(rpacket->dir >= WAROIDDIRECTION::NONE && rpacket->dir < WAROIDDIRECTION::TOTAL);
-	GRC_CHECK_RETURN(rpacket->speed >= WAROIDSPEED::NONE && rpacket->speed < WAROIDSPEED::TOTAL);
+	GRC_CHECK_RETURN(IsValidWaroidDirection(rpacket->direction));
+	GRC_CHECK_RETURN(IsValidWaroidSpeed(rpacket->speed));
 
 	//send serial
-	WAROIDDIRECTION::ETYPE dir = static_cast<WAROIDDIRECTION::ETYPE>(rpacket->dir);
-	WAROIDSPEED::ETYPE speed = static_cast<WAROIDSPEED::ETYPE>(rpacket->speed);
-	Manager::GetControlBoardOpener().getFirstOpenedSession()->sendMove(dir, speed);
+	Manager::GetControlBoardOpener().getFirstOpenedSession()->sendMove(rpacket->direction, rpacket->speed);
 
-	GRC_DEV("[%s]move. dir=%d speed=%d", getObjName(), dir, speed);
+	GRC_DEV("[%s]move. dir=%d speed=%d", getObjName(), rpacket->direction, rpacket->speed);
 }
 
 WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_FIRE)
@@ -110,7 +108,7 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_FIRE)
 
 	GRC_CHECK_FUNC_RETURN(GlobalData::Login(), eclose("not login."));
 
-	if (rpacket->on == 1)
+	if (rpacket->onoff == WAROIDONOFF::ON)
 	{
 		Manager::GetControlBoardOpener().getFirstOpenedSession()->sendFire(true);
 		if (GlobalData::IsRepeatWeapon() == false)
@@ -131,7 +129,7 @@ WAROID_USER_SESSION_COMMAND_FUNC_IMPLEMENTATION(U_R_FIRE)
 		}
 	}
 
-	GRC_DEV("[%s]fire. on=%d", getObjName(), rpacket->on);
+	GRC_DEV("[%s]fire. on=%d", getObjName(), rpacket->onoff);
 }
 
 UserSession::UserSession(size_t maxPacketSize)

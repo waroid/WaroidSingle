@@ -38,68 +38,66 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-namespace WAROIDTEAM
-{
-	enum ETYPE
+enum class WAROIDONOFF
+	: unsigned char
+	{
+		OFF = 0, ON,
+};
+
+enum class WAROIDTEAM
+	: unsigned char
 	{
 		NONE = 0,
 		//-----
-		RED,
-		BLUE,
-		//-----
-		TOTAL,
-	};
-}
+	RED,
+	BLUE,
+	//-----
+	TOTAL,
+};
 
-namespace WAROIDDIRECTION
-{
-	enum ETYPE
+enum class WAROIDDIRECTION
+	: unsigned char
 	{
 		NONE = 0,
 		//-----
-		FORWARD,
-		BACKWARD,
-		LEFT,
-		RIGHT,
-		LEFT_FORWARD,
-		RIGHT_FORWARD,
-		LEFT_BACKWARD,
-		RIGHT_BACKWARD,
-		LEFT_TURN,
-		RIGHT_TURN,
-		//-----
-		TOTAL
-	};
+	FORWARD,
+	BACKWARD,
+	LEFT,
+	RIGHT,
+	LEFT_FORWARD,
+	RIGHT_FORWARD,
+	LEFT_BACKWARD,
+	RIGHT_BACKWARD,
+	LEFT_TURN,
+	RIGHT_TURN,
+	//-----
+	TOTAL
+};
+extern WAROIDDIRECTION GetWaroidDirection(GRCCSTR name);
+extern bool IsValidWaroidDirection(WAROIDDIRECTION direction);
 
-	extern ETYPE GetType(GRCCSTR name);
-}
-
-namespace WAROIDSPEED
-{
-	enum ETYPE
+enum class WAROIDSPEED
+	: unsigned char
 	{
 		NONE = 0,
 		//-----
-		SLOW,
-		DEFAULT,
-		FAST,
-		//-----
-		TOTAL
-	};
-}
+	SLOW,
+	DEFAULT,
+	FAST,
+	//-----
+	TOTAL
+};
+extern bool IsValidWaroidSpeed(WAROIDSPEED speed);
 
-namespace WAROIDWEAPON
-{
-	enum ETYPE
+enum class WAROIDWEAPON
+	: unsigned char
 	{
 		UNKNOWN = 0,
 		//-----
-		GATLING,
-		CANNON,
-		LASER,
-	};
-
-	extern ETYPE GetType(GRCCSTR name);
-}
+	GATLING,
+	CANNON,
+	LASER,
+};
+extern WAROIDWEAPON GetWaroidWeapon(GRCCSTR name);
 
 #endif /* DEFINES_H_ */

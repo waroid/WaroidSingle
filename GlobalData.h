@@ -17,7 +17,7 @@ class GlobalData
 public:
 	static const char* GetRobotName();
 	static int GetRobotType();
-	static unsigned char GetMovePower(WAROIDDIRECTION::ETYPE dir, WAROIDSPEED::ETYPE speed);
+	static unsigned char GetMovePower(WAROIDDIRECTION direction, WAROIDSPEED speed);
 	static bool IsRepeatWeapon();
 	static const char* GetWeaponSoundFilename();
 
@@ -34,8 +34,8 @@ public:
 		return s_battery;
 	}
 
-	static int GetCameraFps(unsigned char quality);
-	static int GetCameraBitRate(unsigned char quality);
+	static int GetCameraFps(int quality);
+	static int GetCameraBitRate(int quality);
 
 	static void UpdateOwner(const RobotData::DATA* robotData);
 	static void UpdateYaw(char hi, char low);
